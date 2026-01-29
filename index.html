@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sagaz Motors – Captação de Leads</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--bg:#0b0b0b;--card:#151515;--red:#8b0000;--text:#fff;--muted:#aaa}
+.light{--bg:#f4f4f4;--card:#fff;--text:#111}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+.container{max-width:1100px;margin:auto;padding:16px}
+header{text-align:center;padding:20px 0}
+header img{max-width:200px}
+h1{margin:10px 0;color:var(--red)}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:16px}
+button{background:var(--red);color:#fff;cursor:pointer}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.stats{display:flex;gap:20px;flex-wrap:wrap}
+.stat{flex:1;background:#0003;padding:12px;border-radius:8px}
+.filter{margin:10px 0}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #333;text-align:left;font-size:14px}
+a{color:#25D366;text-decoration:none}
+.toggle{float:right;font-size:18px;cursor:pointer}
+footer{text-align:center;font-size:14px;color:var(--muted)}
+.qr img{max-width:140px;margin-top:10px}
+@media(max-width:600px){th,td{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<span class="toggle" onclick="toggleDark()">🌙</span>
+<img src="logo.jpg">
+<h1>Captação Rápida de Leads – Sagaz Motors</h1>
+</header>
+
+<div class="card">
+<form id="form">
+<input id="nome" placeholder="Nome" required>
+<input id="whatsapp" placeholder="WhatsApp (DDD + número)" required>
+<input id="interesse" placeholder="Interesse / Veículo">
+<button type="submit">Salvar Lead</button>
+</form>
+<div class="actions">
+<button onclick="enviarWhats()">📱 Enviar WhatsApp</button>
+<button onclick="exportar()">Exportar CSV</button>
+<button onclick="limpar()">Limpar</button>
+</div>
+</div>
+
+<div class="card stats">
+<div class="stat">Total Leads: <b id="total">0</b></div>
+<div class="stat">Leads Hoje: <b id="hoje">0</b></div>
+</div>
+
+<div class="card">
+<input class="filter" id="filtro" placeholder="Filtrar por nome ou interesse" oninput="render()">
+<table>
+<thead><tr><th>Nome</th><th>WhatsApp</th><th>Interesse</th><th>WA</th></tr></thead>
+<tbody id="lista"></tbody>
+</table>
+</div>
+
+<footer class="card">
+<div class="qr">
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wa.me/557399946787">
+</div>
+<p>© Sagaz Motors</p>
+</footer>
+</div>
+
+<script>
+const mensagens=["E aí, acelera pra cá! Vem pra Sagaz Motors!","Bora acelerar com a gente?","Seu sonho começa aqui!"];
+let msgIndex=0;
+const linkParc=" https://havannahtech.github.io/PARCELAMENTO-SAGAZ-MOTORS/";
+const form=document.getElementById("form");
+const lista=document.getElementById("lista");
+
+function getLeads(){return JSON.parse(localStorage.getItem("sagazLeads"))||[]}
+function save(l){localStorage.setItem("sagazLeads",JSON.stringify(l))}
+
+form.onsubmit=e=>{
+e.preventDefault();
+if(nome.value.length<3)return alert("Nome inválido");
+if(!/^\d{10,13}$/.test(whatsapp.value))return alert("WhatsApp inválido");
+const l=getLeads();
+l.push({nome:nome.value,whatsapp:whatsapp.value,interesse:interesse.value,data:new Date().toISOString()});
+save(l);form.reset();render();
+}
+
+function enviarWhats(){
+const l=getLeads().slice(-1)[0];
+if(!l)return alert("Nenhum lead");
+const msg=mensagens[msgIndex++%mensagens.length]+linkParc;
+window.open(`https://wa.me/55${l.whatsapp}?text=${encodeURIComponent(msg)}`);
+}
+
+function render(){
+const f=filtro.value.toLowerCase();
+lista.innerHTML="";
+const l=getLeads().filter(x=>x.nome.toLowerCase().includes(f)||x.interesse.toLowerCase().includes(f));
+l.forEach(x=>{
+lista.innerHTML+=`<tr><td>${x.nome}</td><td>${x.whatsapp}</td><td>${x.interesse}</td><td><a href="https://wa.me/55${x.whatsapp}" target="_blank">📱</a></td></tr>`;
+});
+total.innerText=l.length;
+hoje.innerText=l.filter(x=>new Date(x.data).toDateString()===new Date().toDateString()).length;
+}
+
+function exportar(){
+let csv="Nome,WhatsApp,Interesse,Link\n";
+getLeads().forEach(x=>csv+=`${x.nome},${x.whatsapp},${x.interesse},https://wa.me/55${x.whatsapp}\n`);
+const a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([csv]));
+a.download="leads-sagaz.csv";
+a.click();
+}
+
+function limpar(){
+if(confirm("Apagar tudo?")){localStorage.removeItem("sagazLeads");render();}
+}
+function toggleDark(){document.body.classList.toggle("light")}
+render();
+</script>
+</body>
+</html>
