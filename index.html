@@ -7,87 +7,145 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{--bg:#0b0b0b;--card:#151515;--red:#8b0000;--text:#fff}
-.light{--bg:#f4f4f4;--card:#fff;--text:#111}
+:root{
+  --bg:#0b0b0b;
+  --card:#151515;
+  --red:#8b0000;
+  --text:#fff
+}
+.light{
+  --bg:#f4f4f4;
+  --card:#fff;
+  --text:#111
+}
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:var(--bg);color:var(--text)}
 .container{max-width:1100px;margin:auto;padding:16px}
 .card{background:var(--card);padding:16px;border-radius:12px;margin-bottom:16px}
-input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:none}
-button{background:var(--red);color:#fff;cursor:pointer}
-.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:none
+}
+
+button{
+  background:var(--red);
+  color:#fff;
+  cursor:pointer;
+  font-weight:bold
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:8px
+}
+
 table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #333;font-size:13px}
-.toggle{float:right;cursor:pointer}
+th,td{
+  padding:8px;
+  border-bottom:1px solid #333;
+  font-size:13px
+}
+
+.toggle{
+  float:right;
+  cursor:pointer;
+  font-size:18px
+}
+
 canvas{max-height:300px}
-.inline{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+
+.inline{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:8px
+}
+
+/* HEADER COM LOGO */
+.header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:16px
+}
+.header img{
+  height:60px;
+}
+.header h2{
+  margin:0;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
+
 <div class="toggle" onclick="document.body.classList.toggle('light')">🌙</div>
 
-<h2>Captação de Leads – Sagaz Motors</h2>
+<!-- LOGO + TITULO -->
+<div class="card header">
+  <img src="logo-sagaz.png" alt="Sagaz Motors">
+  <h2>Captação de Leads – Sagaz Motors</h2>
+</div>
 
 <div class="card">
 <form id="form">
 
-<!-- CATEGORIA -->
 <select id="categoria" required>
-<option value="">Veículo de Interesse</option>
-<option>SCOOTER</option>
-<option>HARLEY</option>
-<option>TRICICLO</option>
-<option>QUADRICICLO</option>
-<option>TANK / CARGO</option>
-<option>PATINETE</option>
-<option>OUTROS</option>
+  <option value="">Veículo de Interesse</option>
+  <option>SCOOTER</option>
+  <option>HARLEY</option>
+  <option>TRICICLO</option>
+  <option>QUADRICICLO</option>
+  <option>TANK / CARGO</option>
+  <option>PATINETE</option>
+  <option>OUTROS</option>
 </select>
 
 <input id="nome" placeholder="Nome" required>
 <input id="whatsapp" placeholder="WhatsApp (somente números)" required>
-
-<!-- PRODUTO / MODELO -->
 <input id="produto" placeholder="Modelo / Produto específico">
 
 <select id="origem" required>
-<option value="">Origem do Lead</option>
-<option>Instagram</option>
-<option>Tráfego Pago</option>
-<option>WhatsApp</option>
-<option>Loja Física</option>
-<option>Indicação</option>
-<option>QR Code</option>
+  <option value="">Origem do Lead</option>
+  <option>Instagram</option>
+  <option>Tráfego Pago</option>
+  <option>WhatsApp</option>
+  <option>Loja Física</option>
+  <option>Indicação</option>
+  <option>QR Code</option>
 </select>
 
-<!-- CEP + NUMERO -->
 <div class="inline">
-<input id="cep" placeholder="CEP" maxlength="8" onblur="buscarCEP()">
-<input id="numero" placeholder="Número">
+  <input id="cep" placeholder="CEP" maxlength="8" onblur="buscarCEP()">
+  <input id="numero" placeholder="Número">
 </div>
 
 <input id="endereco" placeholder="Endereço completo" readonly>
 
 <select id="voucher">
-<option value="">Voucher (opcional)</option>
-<option value="R$300">R$ 300</option>
-<option value="R$500">R$ 500</option>
-<option value="R$1000">R$ 1000</option>
-<option value="R$1500">R$ 1500</option>
-<option value="12x sem juros">12x sem juros</option>
-<option value="18x sem juros">18x sem juros</option>
-<option value="24x sem juros">24x sem juros</option>
+  <option value="">Voucher (opcional)</option>
+  <option value="R$300">R$ 300</option>
+  <option value="R$500">R$ 500</option>
+  <option value="R$1000">R$ 1000</option>
+  <option value="R$1500">R$ 1500</option>
+  <option value="12x sem juros">12x sem juros</option>
+  <option value="18x sem juros">18x sem juros</option>
+  <option value="24x sem juros">24x sem juros</option>
 </select>
 
 <button type="submit">Salvar Lead</button>
 </form>
 
 <div class="actions">
-<button onclick="whatsVoucher()">📱 Enviar Whats + Voucher</button>
-<button onclick="exportar('dia')">CSV Hoje</button>
-<button onclick="exportar('semana')">CSV Semana</button>
-<button onclick="exportar('mes')">CSV Mês</button>
+  <button onclick="whatsVoucher()">📱 Enviar Whats + Voucher</button>
+  <button onclick="exportar('dia')">CSV Hoje</button>
+  <button onclick="exportar('semana')">CSV Semana</button>
+  <button onclick="exportar('mes')">CSV Mês</button>
 </div>
 </div>
 
@@ -100,13 +158,13 @@ canvas{max-height:300px}
 <table>
 <thead>
 <tr>
-<th>Nome</th>
-<th>Whats</th>
-<th>Origem</th>
-<th>Categoria</th>
-<th>Produto</th>
-<th>Endereço</th>
-<th>Voucher</th>
+  <th>Nome</th>
+  <th>Whats</th>
+  <th>Origem</th>
+  <th>Categoria</th>
+  <th>Produto</th>
+  <th>Endereço</th>
+  <th>Voucher</th>
 </tr>
 </thead>
 <tbody id="lista"></tbody>
@@ -124,96 +182,88 @@ function get(){return JSON.parse(localStorage.getItem(KEY))||[]}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
 
 async function buscarCEP(){
-const c=cep.value.replace(/\D/g,"");
-if(c.length!==8)return;
-const r=await fetch(`https://viacep.com.br/ws/${c}/json/`);
-const d=await r.json();
-if(d.erro)return alert("CEP não encontrado");
-const n=numero.value||"";
-endereco.value=`${d.logradouro}, ${n} – ${d.bairro} – ${d.localidade}/${d.uf}`;
+  const c=cep.value.replace(/\D/g,"");
+  if(c.length!==8)return;
+  const r=await fetch(`https://viacep.com.br/ws/${c}/json/`);
+  const d=await r.json();
+  if(d.erro)return alert("CEP não encontrado");
+  endereco.value=`${d.logradouro}, ${numero.value||""} – ${d.bairro} – ${d.localidade}/${d.uf}`;
 }
 
-numero.onblur=()=>{ if(cep.value) buscarCEP(); }
-
 form.onsubmit=e=>{
-e.preventDefault();
-const lead={
-nome:nome.value,
-whatsapp:whatsapp.value,
-categoria:categoria.value,
-produto:produto.value,
-origem:origem.value,
-endereco:endereco.value,
-voucher:voucher.value,
-data:new Date().toISOString(),
-validadeVoucher:new Date(Date.now()+48*60*60*1000).toISOString()
-};
-const d=get(); d.push(lead); save(d);
-form.reset(); render();
+  e.preventDefault();
+  const lead={
+    nome:nome.value,
+    whatsapp:whatsapp.value,
+    categoria:categoria.value,
+    produto:produto.value,
+    origem:origem.value,
+    endereco:endereco.value,
+    voucher:voucher.value,
+    data:new Date().toISOString()
+  };
+  const d=get(); d.push(lead); save(d);
+  form.reset(); render();
 }
 
 function render(){
-lista.innerHTML="";
-get().forEach(l=>{
-lista.innerHTML+=`
-<tr>
-<td>${l.nome}</td>
-<td>${l.whatsapp}</td>
-<td>${l.origem}</td>
-<td>${l.categoria}</td>
-<td>${l.produto||"-"}</td>
-<td>${l.endereco||"-"}</td>
-<td>${l.voucher||"-"}</td>
-</tr>`;
-});
+  lista.innerHTML="";
+  get().forEach(l=>{
+    lista.innerHTML+=`
+    <tr>
+      <td>${l.nome}</td>
+      <td>${l.whatsapp}</td>
+      <td>${l.origem}</td>
+      <td>${l.categoria}</td>
+      <td>${l.produto||"-"}</td>
+      <td>${l.endereco||"-"}</td>
+      <td>${l.voucher||"-"}</td>
+    </tr>`;
+  });
 }
 render();
 
 function whatsVoucher(){
-const l=get().slice(-1)[0];
-if(!l)return;
-
-let msg=`Olá ${l.nome}! 🚀\nBem-vindo à *Sagaz Motors*.\n\n`;
-
-if(l.voucher){
-msg+=`🎁 *VOUCHER EXCLUSIVO*: ${l.voucher}\n`;
-msg+=`⏰ *ATENÇÃO:* válido por *APENAS 48 HORAS* a partir de agora.\n\n`;
-}
-
-msg+=`📍 Endereço cadastrado:\n${l.endereco}\n\n`;
-msg+=`💰 Simule agora seu parcelamento:\nhttps://havannahtech.github.io/PARCELAMENTO-SAGAZ-MOTORS/`;
-
-window.open(`https://wa.me/55${l.whatsapp}?text=${encodeURIComponent(msg)}`);
+  const l=get().slice(-1)[0];
+  if(!l)return;
+  let msg=`Olá ${l.nome}! 🚀\nBem-vindo à *Sagaz Motors*.\n\n`;
+  if(l.voucher){
+    msg+=`🎁 *VOUCHER*: ${l.voucher}\n⏰ válido por 48h\n\n`;
+  }
+  msg+=`📍 ${l.endereco}\n\n`;
+  msg+=`💰 Simule agora:\nhttps://havannahtech.github.io/PARCELAMENTO-SAGAZ-MOTORS/`;
+  window.open(`https://wa.me/55${l.whatsapp}?text=${encodeURIComponent(msg)}`);
 }
 
 function exportar(tipo){
-const hoje=new Date();
-let dados=get().filter(l=>{
-const d=new Date(l.data);
-if(tipo==="dia") return d.toDateString()===hoje.toDateString();
-if(tipo==="semana") return (hoje-d)/(1000*60*60*24)<=7;
-if(tipo==="mes") return d.getMonth()===hoje.getMonth();
-});
-let csv="Nome,Whats,Origem,Categoria,Produto,Endereco,Voucher\n";
-dados.forEach(l=>csv+=`${l.nome},${l.whatsapp},${l.origem},${l.categoria},${l.produto},"${l.endereco}",${l.voucher}\n`);
-const a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([csv]));
-a.download=`leads-${tipo}.csv`;
-a.click();
+  const hoje=new Date();
+  let dados=get().filter(l=>{
+    const d=new Date(l.data);
+    if(tipo==="dia")return d.toDateString()===hoje.toDateString();
+    if(tipo==="semana")return (hoje-d)/(1000*60*60*24)<=7;
+    if(tipo==="mes")return d.getMonth()===hoje.getMonth();
+  });
+  let csv="Nome,Whats,Origem,Categoria,Produto,Endereco,Voucher\n";
+  dados.forEach(l=>{
+    csv+=`${l.nome},${l.whatsapp},${l.origem},${l.categoria},${l.produto},"${l.endereco}",${l.voucher}\n`;
+  });
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv]));
+  a.download=`leads-${tipo}.csv`;
+  a.click();
 }
 
 function gerarGrafico(){
-const dados=get();
-const contagem={};
-dados.forEach(l=>{
-const d=new Date(l.data).toLocaleDateString();
-contagem[d]=(contagem[d]||0)+1;
-});
-if(chart)chart.destroy();
-chart=new Chart(ctx,{
-type:'bar',
-data:{labels:Object.keys(contagem),datasets:[{label:'Leads',data:Object.values(contagem)}]}
-});
+  const c={};
+  get().forEach(l=>{
+    const d=new Date(l.data).toLocaleDateString();
+    c[d]=(c[d]||0)+1;
+  });
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:Object.keys(c),datasets:[{label:'Leads',data:Object.values(c)}]}
+  });
 }
 </script>
 </body>
