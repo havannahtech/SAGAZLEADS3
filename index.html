@@ -86,7 +86,6 @@ canvas{max-height:300px}
 
 <div class="toggle" onclick="document.body.classList.toggle('light')">🌙</div>
 
-<!-- LOGO + TITULO -->
 <div class="card header">
   <img src="logo-sagaz.png" alt="Sagaz Motors">
   <h2>Captação de Leads – Sagaz Motors</h2>
@@ -94,17 +93,6 @@ canvas{max-height:300px}
 
 <div class="card">
 <form id="form">
-
-<select id="categoria" required>
-  <option value="">Veículo de Interesse</option>
-  <option>SCOOTER</option>
-  <option>HARLEY</option>
-  <option>TRICICLO</option>
-  <option>QUADRICICLO</option>
-  <option>TANK / CARGO</option>
-  <option>PATINETE</option>
-  <option>OUTROS</option>
-</select>
 
 <input id="nome" placeholder="Nome" required>
 <input id="whatsapp" placeholder="WhatsApp (somente números)" required>
@@ -121,7 +109,7 @@ canvas{max-height:300px}
 </select>
 
 <div class="inline">
-  <input id="cep" placeholder="CEP" maxlength="8" onblur="buscarCEP()">
+  <input id="cep" placeholder="CEP (00000-000)" maxlength="9" onblur="buscarCEP()">
   <input id="numero" placeholder="Número">
 </div>
 
@@ -142,7 +130,7 @@ canvas{max-height:300px}
 </form>
 
 <div class="actions">
-  <button onclick="whatsVoucher()">📱 Enviar Whats + Voucher</button>
+  <button onclick="whatsVoucher()">📱 Enviar Portfólio + Whats</button>
   <button onclick="exportar('dia')">CSV Hoje</button>
   <button onclick="exportar('semana')">CSV Semana</button>
   <button onclick="exportar('mes')">CSV Mês</button>
@@ -161,7 +149,6 @@ canvas{max-height:300px}
   <th>Nome</th>
   <th>Whats</th>
   <th>Origem</th>
-  <th>Categoria</th>
   <th>Produto</th>
   <th>Endereço</th>
   <th>Voucher</th>
@@ -182,12 +169,18 @@ function get(){return JSON.parse(localStorage.getItem(KEY))||[]}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
 
 async function buscarCEP(){
-  const c=cep.value.replace(/\D/g,"");
-  if(c.length!==8)return;
-  const r=await fetch(`https://viacep.com.br/ws/${c}/json/`);
-  const d=await r.json();
-  if(d.erro)return alert("CEP não encontrado");
-  endereco.value=`${d.logradouro}, ${numero.value||""} – ${d.bairro} – ${d.localidade}/${d.uf}`;
+  // Remove tudo que não for número para a consulta na API
+  const c = cep.value.replace(/\D/g,"");
+  if(c.length!==8) return;
+  
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+    const d = await r.json();
+    if(d.erro) return alert("CEP não encontrado");
+    endereco.value = `${d.logradouro}, ${numero.value||""} – ${d.bairro} – ${d.localidade}/${d.uf}`;
+  } catch (e) {
+    console.error("Erro ao buscar CEP");
+  }
 }
 
 form.onsubmit=e=>{
@@ -195,7 +188,6 @@ form.onsubmit=e=>{
   const lead={
     nome:nome.value,
     whatsapp:whatsapp.value,
-    categoria:categoria.value,
     produto:produto.value,
     origem:origem.value,
     endereco:endereco.value,
@@ -214,7 +206,6 @@ function render(){
       <td>${l.nome}</td>
       <td>${l.whatsapp}</td>
       <td>${l.origem}</td>
-      <td>${l.categoria}</td>
       <td>${l.produto||"-"}</td>
       <td>${l.endereco||"-"}</td>
       <td>${l.voucher||"-"}</td>
@@ -225,14 +216,24 @@ render();
 
 function whatsVoucher(){
   const l=get().slice(-1)[0];
-  if(!l)return;
-  let msg=`Olá ${l.nome}! 🚀\nBem-vindo à *Sagaz Motors*.\n\n`;
+  if(!l) return alert("Nenhum lead cadastrado.");
+  
+  // Nova mensagem conforme solicitado
+  let msg = `Olá ${l.nome}! É um prazer ter você conosco! 🚀\n\n`;
+  msg += `Gostaria de agradecer imensamente pela sua visita à *Sagaz Motors*. Ficamos muito felizes em apresentar nossas soluções em mobilidade elétrica e inovação para você.\n\n`;
+  
   if(l.voucher){
-    msg+=`🎁 *VOUCHER*: ${l.voucher}\n⏰ válido por 48h\n\n`;
+    msg += `🎁 *PRESENTE ESPECIAL*: Você ganhou um voucher de: *${l.voucher}*\n\n`;
   }
-  msg+=`📍 ${l.endereco}\n\n`;
-  msg+=`💰 Simule agora:\nhttps://havannahtech.github.io/PARCELAMENTO-SAGAZ-MOTORS/`;
-  window.open(`https://wa.me/55${l.whatsapp}?text=${encodeURIComponent(msg)}`);
+
+  msg += `Para que você possa conferir todos os nossos modelos, cores e especificações técnicas com calma, preparei o nosso *Portfólio Digital Interativo*.\n\n`;
+  msg += `Pode acessar pelo link abaixo:\n`;
+  msg += `👉 https://inovabio.my.canva.site/tabela-motors\n\n`;
+  msg += `*Dica:* Basta clicar no link e arrastar para o lado para navegar por todo o catálogo.\n\n`;
+  msg += `Se tiver qualquer dúvida sobre autonomia, financiamento ou quiser entender qual modelo melhor se adapta ao seu dia a dia, é só me chamar por aqui. Estamos à disposição!\n\n`;
+  msg += `Abraços,\nEquipe Sagaz Motors`;
+
+  window.open(`https://wa.me/55${l.whatsapp.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`);
 }
 
 function exportar(tipo){
@@ -243,9 +244,9 @@ function exportar(tipo){
     if(tipo==="semana")return (hoje-d)/(1000*60*60*24)<=7;
     if(tipo==="mes")return d.getMonth()===hoje.getMonth();
   });
-  let csv="Nome,Whats,Origem,Categoria,Produto,Endereco,Voucher\n";
+  let csv="Nome,Whats,Origem,Produto,Endereco,Voucher\n";
   dados.forEach(l=>{
-    csv+=`${l.nome},${l.whatsapp},${l.origem},${l.categoria},${l.produto},"${l.endereco}",${l.voucher}\n`;
+    csv+=`${l.nome},${l.whatsapp},${l.origem},${l.produto},"${l.endereco}",${l.voucher}\n`;
   });
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([csv]));
@@ -262,7 +263,7 @@ function gerarGrafico(){
   if(chart)chart.destroy();
   chart=new Chart(ctx,{
     type:'bar',
-    data:{labels:Object.keys(c),datasets:[{label:'Leads',data:Object.values(c)}]}
+    data:{labels:Object.keys(c),datasets:[{label:'Leads',data:Object.values(c), backgroundColor:'#8b0000'}]}
   });
 }
 </script>
