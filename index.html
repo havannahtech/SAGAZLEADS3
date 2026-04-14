@@ -35,13 +35,16 @@ button{
   background:var(--red);
   color:#fff;
   cursor:pointer;
-  font-weight:bold
+  font-weight:bold;
+  transition: 0.3s;
 }
+button:hover{ opacity: 0.8; }
 
 .actions{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:8px
+  gap:8px;
+  margin-top: 10px;
 }
 
 table{width:100%;border-collapse:collapse}
@@ -95,7 +98,7 @@ canvas{max-height:300px}
 <form id="form">
 
 <input id="nome" placeholder="Nome" required>
-<input id="whatsapp" placeholder="WhatsApp (somente números)" required>
+<input id="whatsapp" placeholder="WhatsApp (ex: 21999999999)" required title="Somente números">
 <input id="produto" placeholder="Modelo / Produto específico">
 
 <select id="origem" required>
@@ -113,7 +116,7 @@ canvas{max-height:300px}
   <input id="numero" placeholder="Número">
 </div>
 
-<input id="endereco" placeholder="Endereço completo" readonly>
+<input id="endereco" placeholder="Endereço completo (preenchimento automático via CEP)" readonly>
 
 <select id="voucher">
   <option value="">Voucher (opcional)</option>
@@ -126,19 +129,20 @@ canvas{max-height:300px}
   <option value="24x sem juros">24x sem juros</option>
 </select>
 
-<button type="submit">Salvar Lead</button>
+<button type="submit" style="font-size: 1.1em; background: #25D366; color: #000;">
+    🚀 SALVAR E ENVIAR WHATSAPP
+</button>
 </form>
 
 <div class="actions">
-  <button onclick="whatsVoucher()">📱 Enviar Portfólio + Whats</button>
-  <button onclick="exportar('dia')">CSV Hoje</button>
-  <button onclick="exportar('semana')">CSV Semana</button>
-  <button onclick="exportar('mes')">CSV Mês</button>
+  <button onclick="exportar('dia')" style="background: #444;">CSV Hoje</button>
+  <button onclick="exportar('semana')" style="background: #444;">CSV Semana</button>
+  <button onclick="exportar('mes')" style="background: #444;">CSV Mês</button>
 </div>
 </div>
 
 <div class="card">
-<button onclick="gerarGrafico()">📊 Gerar Gráfico</button>
+<button onclick="gerarGrafico()" style="background: #8b0000;">📊 Atualizar Gráfico</button>
 <canvas id="grafico"></canvas>
 </div>
 
@@ -169,10 +173,8 @@ function get(){return JSON.parse(localStorage.getItem(KEY))||[]}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
 
 async function buscarCEP(){
-  // Remove tudo que não for número para a consulta na API
   const c = cep.value.replace(/\D/g,"");
   if(c.length!==8) return;
-  
   try {
     const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
     const d = await r.json();
@@ -183,24 +185,52 @@ async function buscarCEP(){
   }
 }
 
+// FUNÇÃO PRINCIPAL: SALVA E GERA O LINK DO WHATSAPP
 form.onsubmit=e=>{
   e.preventDefault();
+
+  // 1. Coleta os dados
   const lead={
     nome:nome.value,
-    whatsapp:whatsapp.value,
+    whatsapp:whatsapp.value.replace(/\D/g,""), // Limpa o whats para salvar
     produto:produto.value,
     origem:origem.value,
     endereco:endereco.value,
     voucher:voucher.value,
     data:new Date().toISOString()
   };
-  const d=get(); d.push(lead); save(d);
-  form.reset(); render();
+
+  // 2. Salva no banco local
+  const d=get(); 
+  d.push(lead); 
+  save(d);
+
+  // 3. Prepara a mensagem personalizada
+  let msg = `Olá ${lead.nome}! É um prazer ter você conosco! 🚀\n\n`;
+  msg += `Gostaria de agradecer imensamente pela sua visita à *Sagaz Motors*. Ficamos muito felizes em apresentar nossas soluções em mobilidade elétrica e inovação para você.\n\n`;
+  
+  if(lead.voucher){
+    msg += `🎁 *PRESENTE ESPECIAL*: Você ganhou um voucher de: *${lead.voucher}*\n\n`;
+  }
+
+  msg += `Para que você possa conferir todos os nossos modelos, cores e especificações técnicas com calma, preparei o nosso *Portfólio Digital Interativo*.\n\n`;
+  msg += `Pode acessar pelo link abaixo:\n`;
+  msg += `👉 https://inovabio.my.canva.site/tabela-motors\n\n`;
+  msg += `*Dica:* Basta clicar no link e arrastar para o lado para navegar por todo o catálogo.\n\n`;
+  msg += `Se tiver qualquer dúvida sobre autonomia, financiamento ou quiser entender qual modelo melhor se adapta ao seu dia a dia, é só me chamar por aqui. Estamos à disposição!\n\n`;
+  msg += `Abraços,\nEquipe Sagaz Motors`;
+
+  // 4. Abre o WhatsApp em nova aba
+  window.open(`https://wa.me/55${lead.whatsapp}?text=${encodeURIComponent(msg)}`);
+
+  // 5. Reseta o formulário e atualiza a tabela na tela
+  form.reset(); 
+  render();
 }
 
 function render(){
   lista.innerHTML="";
-  get().forEach(l=>{
+  get().reverse().forEach(l=>{ // Mostra os mais recentes primeiro
     lista.innerHTML+=`
     <tr>
       <td>${l.nome}</td>
@@ -213,28 +243,6 @@ function render(){
   });
 }
 render();
-
-function whatsVoucher(){
-  const l=get().slice(-1)[0];
-  if(!l) return alert("Nenhum lead cadastrado.");
-  
-  // Nova mensagem conforme solicitado
-  let msg = `Olá ${l.nome}! É um prazer ter você conosco! 🚀\n\n`;
-  msg += `Gostaria de agradecer imensamente pela sua visita à *Sagaz Motors*. Ficamos muito felizes em apresentar nossas soluções em mobilidade elétrica e inovação para você.\n\n`;
-  
-  if(l.voucher){
-    msg += `🎁 *PRESENTE ESPECIAL*: Você ganhou um voucher de: *${l.voucher}*\n\n`;
-  }
-
-  msg += `Para que você possa conferir todos os nossos modelos, cores e especificações técnicas com calma, preparei o nosso *Portfólio Digital Interativo*.\n\n`;
-  msg += `Pode acessar pelo link abaixo:\n`;
-  msg += `👉 https://inovabio.my.canva.site/tabela-motors\n\n`;
-  msg += `*Dica:* Basta clicar no link e arrastar para o lado para navegar por todo o catálogo.\n\n`;
-  msg += `Se tiver qualquer dúvida sobre autonomia, financiamento ou quiser entender qual modelo melhor se adapta ao seu dia a dia, é só me chamar por aqui. Estamos à disposição!\n\n`;
-  msg += `Abraços,\nEquipe Sagaz Motors`;
-
-  window.open(`https://wa.me/55${l.whatsapp.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`);
-}
 
 function exportar(tipo){
   const hoje=new Date();
